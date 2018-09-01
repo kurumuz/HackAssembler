@@ -28,24 +28,29 @@ namespace HackAssembler
             return inslist;
         }
 
-        public static bool dahaKomutVarmı()
+        public static bool dahaKomutVarmı() //look for comments and whitelines here.
         {
-            if ((currinstlist+1)-inslist.Count() != 0)
+            if ((currinstlist-inslist.Count()) >= 0) 
             {
-                return true;
+                return false;
             }
             else
             {
-                return false;
+                return true;
             }
         }
 
         public static void ilerle()
         {
-            command = inslist[currinstlist+1];
+            currinstlist++; // 1 
+            if (inslist.Count() > currinstlist)
+            {
+                command = inslist[currinstlist];
+                
+            }
         }
 
-        public static string komuttipi()
+        public static string komuttipi() // "//" ile başlayan yada tamamı boşluk olan satırları algılamayı ekle. eğer a veya c komutu ise //den sonraki herşeyi regex ile sil.
         {
             Regex lcommand = new Regex(@"\(([^\)]*)\)");
             Match lmatch = lcommand.Match(command);
@@ -66,6 +71,7 @@ namespace HackAssembler
                 ccommandturu= "nothing";
                 return "A_COMMAND";
             }
+
             else if (command.Contains('=') || command.Contains(';')) 
             {
                 acommandx = "nothing";
@@ -77,7 +83,7 @@ namespace HackAssembler
                     return "C_COMMAND";
                 }
 
-                else if (command.Contains(';') && !command.Contains(';'))
+                else if (command.Contains(';') && !command.Contains('='))
                 {
                     ccommandturu = "sadecevirgül";
                     return "C_COMMAND";
@@ -122,7 +128,7 @@ namespace HackAssembler
             if (ccommandturu == "sadeceeşit" || ccommandturu == "ikiside")
             {
                 Match destmatch = Regex.Match(command, @"^.*?(?==)");
-                return destmatch.Groups[0].Value;
+                return Regex.Replace(destmatch.Groups[0].Value, @"\s+", "");
             }
 
             else
@@ -139,17 +145,18 @@ namespace HackAssembler
                 if (ccommandturu == "sadecevirgül") //sadece ; olan | comp;jump
                 {
                     Match compmatch = Regex.Match(command, @"^.*?(?=;)");
-                    return compmatch.Groups[1].Value;
+                    return Regex.Replace(compmatch.Groups[0].Value, @"\s+", "");
                 }
                 else if (ccommandturu == "sadeceeşit") //sadece = olan |dest=comp | eşittirden sonraki herşey
                 {
                     Match compmatch = Regex.Match(command, @"=(.+)$");
-                    return compmatch.Groups[1].Value;
+                    string compmatchwospace = Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
+                    return Regex.Replace(compmatchwospace, @"/(.+)$", ""); // deletes the
                 }
                 else if (ccommandturu == "ikiside") //hem eşittir hemde virgül var | dest=comp;jump | = ve ; arasındaki alınmalı
                 {
                     Match compmatch = Regex.Match(command, @"\=([^\)]*)\;");
-                    return compmatch.Groups[1].Value;
+                    return Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
                 }
                 else
                 {
@@ -172,7 +179,8 @@ namespace HackAssembler
                 if (ccommandturu == "sadecevirgül" || ccommandturu == "ikiside") //sadece ; olan | comp;jump
                 {
                     Match ziplamatch = Regex.Match(command, @";(.+)$");
-                    return ziplamatch.Groups[1].Value;
+                    string ziplamatchwospace = Regex.Replace(ziplamatch.Groups[1].Value, @"\s+", "");
+                    return Regex.Replace(ziplamatchwospace, @"/(.+)$", "");
                 }
 
                 else
