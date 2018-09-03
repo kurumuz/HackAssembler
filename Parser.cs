@@ -8,14 +8,11 @@ namespace HackAssembler
 {
     public class Parser
     {
-        public static string command = "nothing";
-        public static string lcommandx = "nothing";
-        public static string acommandx = "nothing";
-        public static string ccommandturu = "nothing";
-        public static string dest = "nothing"; //muhtemelen dest comp ve jump stringlerine gerek kalmayacak
-        public static string comp = "nothing";
-        public static string jump = "nothing";
-        public static int currinstlist = 0;
+        public static string currCommand = "NULL";
+        public static string lValue = "NULL";
+        public static string aValue = "NULL";
+        public static string cType = "NULL";
+        public static int currInst = 0;
         public static List<string> inslist = new List<string>();
         public static List<string> OpenFile(string asmpath)
         {
@@ -24,13 +21,13 @@ namespace HackAssembler
             {
                 inslist.Add(arrayLine[i]);
             }
-            command = inslist[0];
+            currCommand = inslist[0];
             return inslist;
         }
 
         public static bool dahaKomutVarmı() //look for comments and whitelines here.
         {
-            if ((currinstlist-inslist.Count()) >= 0) 
+            if ((currInst-inslist.Count()) >= 0) 
             {
                 return false;
             }
@@ -42,56 +39,56 @@ namespace HackAssembler
 
         public static void ilerle()
         {
-            currinstlist++; // 1 
-            if (inslist.Count() > currinstlist)
+            currInst++;
+            if (inslist.Count() > currInst)
             {
-                command = inslist[currinstlist];
-                
+                currCommand = inslist[currInst];
             }
         }
 
         public static string komuttipi() // "//" ile başlayan yada tamamı boşluk olan satırları algılamayı ekle. eğer a veya c komutu ise //den sonraki herşeyi regex ile sil.
         {
             Regex lcommand = new Regex(@"\(([^\)]*)\)");
-            Match lmatch = lcommand.Match(command);
+            Match lmatch = lcommand.Match(currCommand);
             Regex acommand = new Regex(@"(?<!\w)@\w+");
-            Match amatch = acommand.Match(command);
+            Match amatch = acommand.Match(currCommand);
             
             if (lmatch.Success & lmatch.Value != "()") //belki sadece 2 tane parantez olmalı?
-            {lcommandx = lmatch.Groups[1].Value;
+            {lValue = lmatch.Groups[1].Value;
                 
-                acommandx = "nothing";
-                ccommandturu= "nothing";
+                aValue = "NULL";
+                cType= "NULL";
                 return "L_COMMAND";
             }
+
             else if (amatch.Success) //@ ten sonra bir @ daha olabilir mi?
             {
-                acommandx = amatch.Value.Substring(1);
-                lcommandx = "nothing";
-                ccommandturu= "nothing";
+                aValue = amatch.Value.Substring(1);
+                lValue = "NULL";
+                cType= "NULL";
                 return "A_COMMAND";
             }
 
-            else if (command.Contains('=') || command.Contains(';')) 
+            else if (currCommand.Contains('=') || currCommand.Contains(';')) 
             {
-                acommandx = "nothing";
-                lcommandx = "nothing";
+                aValue = "NULL";
+                lValue = "NULL";
 
-                if (command.Contains('=') && !command.Contains(';'))
+                if (currCommand.Contains('=') && !currCommand.Contains(';')) //
                 {
-                    ccommandturu = "sadeceeşit";
+                    cType = "destncomp";
                     return "C_COMMAND";
                 }
 
-                else if (command.Contains(';') && !command.Contains('='))
+                else if (currCommand.Contains(';') && !currCommand.Contains('='))
                 {
-                    ccommandturu = "sadecevirgül";
+                    cType = "compnjump";
                     return "C_COMMAND";
                 }
 
-                else if (command.Contains('=') && command.Contains(';'))
+                else if (currCommand.Contains('=') && currCommand.Contains(';'))
                 {
-                    ccommandturu = "ikiside";
+                    cType = "all";
                     return "C_COMMAND";
                 }
 
@@ -99,8 +96,8 @@ namespace HackAssembler
                 {
                     return "Bilinmiyor";
                 }
-
             }
+
             else
             {
                 return "Bilinmiyor";
@@ -109,63 +106,72 @@ namespace HackAssembler
 
         public static string sembol()
         {
-            if (lcommandx != "nothing")
+
+            if (lValue != "NULL")
             {
-                return lcommandx;
+                return lValue;
             }
-            if (acommandx != "nothing")
+
+            if (aValue != "NULL")
             {
-                return acommandx;
+                return aValue;
             }
+
             else
             {
-                return "nothing";
+                return "NULL";
             } 
         }
 
         public static string hedef()
         {
-            if (ccommandturu == "sadeceeşit" || ccommandturu == "ikiside")
+
+            if (cType == "destncomp" || cType == "all")
             {
-                Match destmatch = Regex.Match(command, @"^.*?(?==)");
+                Match destmatch = Regex.Match(currCommand, @"^.*?(?==)");
                 return Regex.Replace(destmatch.Groups[0].Value, @"\s+", "");
             }
 
             else
             {
-                return "nothing";
+                return "NULL";
             }
         }
 
         public static string islem()
         {
 
-            if (ccommandturu != "nothing")
+            if (cType != "NULL")
             {
-                if (ccommandturu == "sadecevirgül") //sadece ; olan | comp;jump
+
+                if (cType == "compnjump") //sadece ; olan | comp;jump
                 {
-                    Match compmatch = Regex.Match(command, @"^.*?(?=;)");
+                    Match compmatch = Regex.Match(currCommand, @"^.*?(?=;)");
                     return Regex.Replace(compmatch.Groups[0].Value, @"\s+", "");
                 }
-                else if (ccommandturu == "sadeceeşit") //sadece = olan |dest=comp | eşittirden sonraki herşey
+
+                else if (cType == "destncomp") //sadece = olan |dest=comp | eşittirden sonraki herşey
                 {
-                    Match compmatch = Regex.Match(command, @"=(.+)$");
+                    Match compmatch = Regex.Match(currCommand, @"=(.+)$");
                     string compmatchwospace = Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
                     return Regex.Replace(compmatchwospace, @"/(.+)$", ""); // deletes the
                 }
-                else if (ccommandturu == "ikiside") //hem eşittir hemde virgül var | dest=comp;jump | = ve ; arasındaki alınmalı
+
+                else if (cType == "all") //hem eşittir hemde virgül var | dest=comp;jump | = ve ; arasındaki alınmalı
                 {
-                    Match compmatch = Regex.Match(command, @"\=([^\)]*)\;");
+                    Match compmatch = Regex.Match(currCommand, @"\=([^\)]*)\;");
                     return Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
                 }
+
                 else
                 {
-                    return "nothing";
+                    return "NULL";
                 }
             }
+
             else
             {
-                return "nothing";   
+                return "NULL";   
             }
 
             //3 fonksiyonda yapılan iş tek fonksiyonda da yapılabilir aslında: eğer = varsa ; yoksa sadece = varsa ve sadece ; varsa olarak
@@ -174,23 +180,17 @@ namespace HackAssembler
 
         public static string ziplama()
         {
-            if (ccommandturu != "nothing")
-            {
-                if (ccommandturu == "sadecevirgül" || ccommandturu == "ikiside") //sadece ; olan | comp;jump
-                {
-                    Match ziplamatch = Regex.Match(command, @";(.+)$");
-                    string ziplamatchwospace = Regex.Replace(ziplamatch.Groups[1].Value, @"\s+", "");
-                    return Regex.Replace(ziplamatchwospace, @"/(.+)$", "");
-                }
 
-                else
-                {
-                    return "nothing";
-                }
+            if ((cType != "NULL") && (cType == "compnjump" || cType == "all"))
+            {
+                Match ziplamatch = Regex.Match(currCommand, @";(.+)$");
+                string ziplamatchwospace = Regex.Replace(ziplamatch.Groups[1].Value, @"\s+", "");
+                return Regex.Replace(ziplamatchwospace, @"/(.+)$", "");    
             }
+
             else
             {
-                return "nothing";
+                return "NULL";
             }
         }
     }
