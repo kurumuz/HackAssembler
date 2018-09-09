@@ -42,7 +42,8 @@ namespace HackAssembler
             currInst++;
             if (inslist.Count() > currInst)
             {
-                currCommand = inslist[currInst];
+                currCommand = Regex.Replace(inslist[currInst], @"/(.+)$", "");
+
             }
         }
 
@@ -50,12 +51,12 @@ namespace HackAssembler
         {
             Regex lcommand = new Regex(@"\(([^\)]*)\)");
             Match lmatch = lcommand.Match(currCommand);
-            Regex acommand = new Regex(@"(?<!\w)@\w+");
+            Regex acommand = new Regex(@"@(.+)$");
             Match amatch = acommand.Match(currCommand);
             
             if (lmatch.Success & lmatch.Value != "()")
-            {lValue = lmatch.Groups[1].Value;
-                
+            {
+                lValue = lmatch.Groups[1].Value;
                 aValue = "NULL";
                 cType= "NULL";
                 return "L_COMMAND";
@@ -63,7 +64,7 @@ namespace HackAssembler
 
             else if (amatch.Success)
             {
-                aValue = amatch.Value.Substring(1);
+                aValue = amatch.Groups[1].Value;
                 lValue = "NULL";
                 cType= "NULL";
                 return "A_COMMAND";
