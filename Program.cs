@@ -12,6 +12,7 @@ namespace HackAssembler
         static List<string> writeList = new List<string>();
         private static void Main(string[] args)
         {
+			
             Console.Write("enter the assembly file name: ");
             string asmfile = Console.ReadLine();
             Match filematch = Regex.Match(asmfile, @"^.*?(?=\.)");
@@ -25,10 +26,10 @@ namespace HackAssembler
                 if (Parser.komuttipi() == "L_COMMAND")
                 {
                     Console.WriteLine("KOMUT: (" + Parser.lValue + ")" + " | SEMBOL: " + Parser.lValue);
-                    //L_COMMAND PARSING: TODO;
-                }
+					//TODO:LOL
+                }   
 
-                else if (Parser.komuttipi() == "A_COMMAND") //for now only can use numbers, not sembols.
+				else if (Parser.komuttipi() == "A_COMMAND") //"TODO:" SYMBOL HANDLING
                 {
                     string aBinary = Convert.ToString(Convert.ToInt32(Parser.aValue), 2);
                     
@@ -60,8 +61,8 @@ namespace HackAssembler
             {
                 Console.WriteLine(instruction);
             }
+            
             File.WriteAllLines(filematch.Groups[0].Value + ".hack", writeList);
-
         }
     }
 }

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 
 namespace HackAssembler
 {
-    public class Parser
+    public static class Parser
     {
         public static string currCommand = "NULL";
         public static string lValue = "NULL";
@@ -25,7 +25,7 @@ namespace HackAssembler
             return inslist;
         }
 
-        public static bool dahaKomutVarmı() //look for comments and whitelines here.
+        public static bool dahaKomutVarmı() 
         {
             if ((currInst-inslist.Count()) >= 0) 
             {
@@ -46,14 +46,14 @@ namespace HackAssembler
             }
         }
 
-        public static string komuttipi() // "//" ile başlayan yada tamamı boşluk olan satırları algılamayı ekle. eğer a veya c komutu ise //den sonraki herşeyi regex ile sil.
+        public static string komuttipi()
         {
             Regex lcommand = new Regex(@"\(([^\)]*)\)");
             Match lmatch = lcommand.Match(currCommand);
             Regex acommand = new Regex(@"(?<!\w)@\w+");
             Match amatch = acommand.Match(currCommand);
             
-            if (lmatch.Success & lmatch.Value != "()") //belki sadece 2 tane parantez olmalı?
+            if (lmatch.Success & lmatch.Value != "()")
             {lValue = lmatch.Groups[1].Value;
                 
                 aValue = "NULL";
@@ -61,7 +61,7 @@ namespace HackAssembler
                 return "L_COMMAND";
             }
 
-            else if (amatch.Success) //@ ten sonra bir @ daha olabilir mi?
+            else if (amatch.Success)
             {
                 aValue = amatch.Value.Substring(1);
                 lValue = "NULL";
@@ -74,7 +74,7 @@ namespace HackAssembler
                 aValue = "NULL";
                 lValue = "NULL";
 
-                if (currCommand.Contains('=') && !currCommand.Contains(';')) //
+                if (currCommand.Contains('=') && !currCommand.Contains(';')) 
                 {
                     cType = "destncomp";
                     return "C_COMMAND";
@@ -144,20 +144,20 @@ namespace HackAssembler
             if (cType != "NULL")
             {
 
-                if (cType == "compnjump") //sadece ; olan | comp;jump
+                if (cType == "compnjump") // comp;jump
                 {
                     Match compmatch = Regex.Match(currCommand, @"^.*?(?=;)");
                     return Regex.Replace(compmatch.Groups[0].Value, @"\s+", "");
                 }
 
-                else if (cType == "destncomp") //sadece = olan |dest=comp | eşittirden sonraki herşey
+                else if (cType == "destncomp") //dest=comp
                 {
                     Match compmatch = Regex.Match(currCommand, @"=(.+)$");
                     string compmatchwospace = Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
                     return Regex.Replace(compmatchwospace, @"/(.+)$", ""); // deletes the
                 }
 
-                else if (cType == "all") //hem eşittir hemde virgül var | dest=comp;jump | = ve ; arasındaki alınmalı
+                else if (cType == "all") //dest=comp;jump
                 {
                     Match compmatch = Regex.Match(currCommand, @"\=([^\)]*)\;");
                     return Regex.Replace(compmatch.Groups[1].Value, @"\s+", "");
@@ -173,9 +173,6 @@ namespace HackAssembler
             {
                 return "NULL";   
             }
-
-            //3 fonksiyonda yapılan iş tek fonksiyonda da yapılabilir aslında: eğer = varsa ; yoksa sadece = varsa ve sadece ; varsa olarak
-            //if ifadeleri ile alabiliriz hepsini, ama 3ünü birden döndüremeyiz ondan 3 ayrı fonksiyon daha iyi bir fikir.      
         }
 
         public static string ziplama()
