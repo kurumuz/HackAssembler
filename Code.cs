@@ -13,7 +13,7 @@ namespace HackAssembler
             switch (Parser.hedef())
             {
                 case "NULL":
-					return "000";
+                    return "000";
 
                 case "M":
                     return "001";

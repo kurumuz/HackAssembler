@@ -14,32 +14,28 @@ namespace HackAssembler
         static List<string> writeList = new List<string>();
         private static void Main(string[] args)
         {
-			SymbolTable.Construct();
+            SymbolTable.Construct();
             Console.Write("enter the assembly file name: ");
             string asmfile = Console.ReadLine();
             Match filematch = Regex.Match(asmfile, @"^.*?(?=\.)");
             var list = new List<string>();
             list = Parser.OpenFile(asmfile);
             Console.WriteLine("satır sayısı: " + list.Count());
-            Console.WriteLine("first pass");
             while(Parser.dahaKomutVarmı()) //first pass
             {
                 
                 if (Parser.komuttipi() == "L_COMMAND")
                 {
-                    Console.Write("Komut türü: [" + Parser.komuttipi() + "] ");
-                    Console.WriteLine("KOMUT: (" + Parser.lValue + ")" + " | SEMBOL: " + Parser.lValue);
                     string lBinary = Convert.ToString(AandLcounter, 2);
                     while (16 - lBinary.Length != 0)
                     {
                         lBinary = "0" + lBinary;
                     }
                     if (!SymbolTable.contains(Parser.lValue))
-					SymbolTable.addEntry(Parser.lValue, lBinary);
-                    Console.WriteLine(SymbolTable.GetAddress(Parser.lValue));
+                    SymbolTable.addEntry(Parser.lValue, lBinary);
                 }   
 
-				else if (Parser.komuttipi() == "A_COMMAND")
+                else if (Parser.komuttipi() == "A_COMMAND")
                 {
                     AandLcounter++;
                 }
@@ -47,11 +43,6 @@ namespace HackAssembler
                 else if (Parser.komuttipi() == "C_COMMAND")
                 {
                     AandLcounter++;
-                }
-
-                else
-                {
-                    Console.WriteLine();
                 }
 
                 Parser.ilerle();
@@ -62,10 +53,10 @@ namespace HackAssembler
             
             while(Parser.dahaKomutVarmı()) //second pass
             {
-                Console.Write("Komut türü: [" + Parser.komuttipi() + "] ");
+                Console.WriteLine("Komut türü: [" + Parser.komuttipi() + "] ");
                 if (Parser.komuttipi() == "L_COMMAND")
                 {
-                    Console.WriteLine("KOMUT: (" + Parser.lValue + ")" + " | SEMBOL: " + Parser.lValue + "DEĞER: " + SymbolTable.GetAddress(Parser.lValue));
+                    Console.WriteLine("KOMUT: (" + Parser.lValue + ")" + " | SEMBOL: " + Parser.lValue + " | Binary: " + SymbolTable.GetAddress(Parser.lValue));
                 }   
 
                 else if (Parser.komuttipi() == "A_COMMAND") //"TODO:" SYMBOL HANDLING
@@ -114,17 +105,7 @@ namespace HackAssembler
                     writeList.Add(cBinary);
                 }
 
-                else
-                {
-                    Console.WriteLine();
-                }
-
                 Parser.ilerle();
-            }
-            
-            foreach(string instruction in writeList)
-            {
-                Console.WriteLine(instruction);
             }
             
             File.WriteAllLines(filematch.Groups[0].Value + ".hack", writeList);
